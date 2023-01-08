@@ -1,27 +1,27 @@
 'use strict'
 
-// Declaración del objeto calculadora
-const calculadora = {
+// Creación de la clase calculadora
+class Calculadora {
   // Propiedad que almacena el último resultado de la calculadora
-  lastResult: 0,
+  lastResult = 0
 
   // Método que suma dos operandos
   suma (operando1, operando2) {
     this.lastResult = operando1 + operando2
     return operando1 + operando2
-  },
+  }
 
   // Método que resta dos operandos
   resta (operando1, operando2) {
     this.lastResult = operando1 - operando2
     return operando1 - operando2
-  },
+  }
 
   // Método que multiplica dos operandos
   multiplicacion (operando1, operando2) {
     this.lastResult = operando1 * operando2
     return operando1 * operando2
-  },
+  }
 
   // Método que divide dos operandos
   division (operando1, operando2) {
@@ -30,33 +30,35 @@ const calculadora = {
   }
 }
 
-// Función que pide un operador al usuario y lo devuelve
-function pedirOperador () {
-  let operador
-
-  // Bucle que pide un operador y si no es correcto lo vuelve a pedir
-  do {
-    operador = window.prompt('Introduce el operador de la operación que quieres realizar. (+, -, * ó /)')
-    if (operador == null) {
-      break
-    }
-    if (!comprobarOperador(operador)) {
-      window.alert('El operador introducido es incorrecto. Debe ser (+, -, * ó /)')
-    }
-  } while (!comprobarOperador(operador))
-
-  return operador
+// Clase error personalizado OperadorError
+class OperadorError extends Error {
+  constructor (message) {
+    super(message)
+    this.name = 'operadorError'
+  }
 }
 
-// Función que comprueba si el operador que el usuario ha introducido es válido o no
-function comprobarOperador (operador) {
-  const operadores = ['+', '-', '*', '/']
-
-  if (operador) {
-    operador = operador.trim()
-    return operadores.includes(operador)
+// Clase error personalizado OperandoError
+class OperandoError extends Error {
+  constructor (message) {
+    super(message)
+    this.name = 'operandoError'
   }
-  return false
+}
+
+// Instancia de la clase calculadora
+const calculadora = new Calculadora()
+
+// Función que pide un operador al usuario y lo devuelve
+function pedirOperador () {
+  const operador = window.prompt('Introduce el operador de la operación que quieres realizar. (+, -, * ó /)')
+
+  const operadores = ['+', '-', '*', '/']
+  if (!operadores.includes(operador.trim())) {
+    throw new OperadorError('El operador introducido es incorrecto. Debe ser (+, -, * ó /)')
+  }
+
+  return operador
 }
 
 // Función que determina el primer operando de un string
@@ -71,9 +73,9 @@ function pedirPrimerOperando (operandos) {
     } else if (isFinite(Number(operando))) {
       return Number(operando)
     }
-    return -1
+    throw new OperandoError('Debes introducir un número válido')
   }
-  return -1
+  throw new OperandoError('Debes introducir dos números separados por un espacio')
 }
 
 // Función que determina el segundo operando de un string
@@ -88,9 +90,9 @@ function pedirSegundoOperando (operandos) {
     } else if (isFinite(Number(operando))) {
       return Number(operando)
     }
-    return -1
+    throw new OperandoError('Debes introducir un número válido')
   }
-  return -1
+  throw new OperandoError('Debes introducir dos números separados por un espacio')
 }
 
 // Función que muestra por pantalla el resultado de la operación seleccionada por el usuario
@@ -123,12 +125,15 @@ do {
   window.alert('Bienvenido a la calculadora')
 
   // Se pide el operador al usuario
-  const operador = pedirOperador()
-
-  // Si el usuario le da a escapa o a cancelar saldrá del bucle totalmente
-  if (operador == null) {
-    break
-  }
+  let operador = ''
+  do {
+    try {
+      operador = pedirOperador()
+      break
+    } catch (err) {
+      window.alert(err.message)
+    }
+  } while (true)
 
   let operandos
   let operando1
@@ -139,20 +144,15 @@ do {
     // Se piden los operandos al usuario
     operandos = window.prompt('Introduce los operandos separados por un espacio')
 
-    // Si el usuario le da a escapa o a cancelar saldrá del bucle totalmente
-    if (operandos == null) {
-      break
-    }
-
     // Se separa el string de operandos en dos operandos diferentes
-    operando1 = pedirPrimerOperando(operandos)
-    operando2 = pedirSegundoOperando(operandos)
-
-    // Se muestra un mesaje de error si alguno de los operandos está mal introducido
-    if (pedirPrimerOperando(operandos) === -1 || pedirSegundoOperando(operandos) === -1) {
-      window.alert('Debes introducir dos números separados por un espacio')
+    try {
+      operando1 = pedirPrimerOperando(operandos)
+      operando2 = pedirSegundoOperando(operandos)
+      break
+    } catch (err) {
+      window.alert(err.message)
     }
-  } while (pedirPrimerOperando(operandos) === -1 || pedirSegundoOperando(operandos) === -1)
+  } while (true)
 
   // Se muestran los resultados de la operación
   mostrarResultado(operador, operando1, operando2)
